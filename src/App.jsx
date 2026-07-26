@@ -2,6 +2,7 @@
 import { getWeather } from './services/weatherApi';
 import WeatherCard from './components/WeatherCard';
 import { useState, useEffect } from "react";
+import SearchHistory from './components/SearchHistory';
 
 
 function App() {
@@ -14,46 +15,54 @@ function App() {
 
 
   useEffect(() => {
-    async function loadDefaultWeather() {
-
-      const weatherData = await getWeather("Lomé");
-
-      setWeather(weatherData);
-      setDisplayCity("Lomé");
-    }
-
-   loadDefaultWeather();
+    loadWeather("Lomé"); // Charger les données météo pour Paris au démarrage de l'application
   }, []);
 
-  async function handleSearch(e) {
+
+
+  async function loadWeather(cityName) {
+
+    setLoading(true);
+
+    try {
+      const weatherData = await getWeather(cityName);
+      setWeather(weatherData);
+      setDisplayCity(cityName);
+
+      setSearchHistory((prev) => {
+        if (prev.includes(cityName)) {
+          return prev;
+        }
+        return [...prev, cityName];
+      });
+
+      setError(null); // Réinitialiser l'erreur si la récupération est réussie
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+    async function handleSearch(e) {
+
+      if (!city.trim()) {
+        return;
+      }
 
     e.preventDefault(); // Empêcher le rechargement de la page  
     // Logique de recherche de la ville
 
-    console.log(`Recherche de la ville : ${city}`);
-    setLoading(true);
-
-
-    try {
-      const weatherData = await getWeather(city);
-      setWeather(weatherData);
-      setDisplayCity(city);
-
-
-      if (!searchHistory.includes(cityfound)) {
-        setSearchHistory((prev) => [...prev, city]);
-      }
-
-    } catch (error) {
-      console.error('Erreur lors de la récupération des données météo :', error);
-      setError(error.message);
-
-    } finally {
-      setLoading(false);
-    }
+    await loadWeather(city); // Charger les données météo pour la ville recherchée          
 
     setCity(''); // Réinitialiser le champ de saisie après la recherche
   }
+
+  function handleHistoryClick(city) {
+    loadWeather(city);
+}
+
+
 
 
   return (
@@ -68,7 +77,11 @@ function App() {
           value={city}
           onChange={(e) => setCity(e.target.value)}
         />
-        <button type="submit">Rechercher</button>
+        <button 
+        type="submit"
+        disabled={loading || !city.trim()}
+        >
+          Rechercher</button>
       </form>     
     
     
@@ -77,6 +90,10 @@ function App() {
       <WeatherCard weather={weather} city={displayCity} />
       )}
       {error && <p>Erreur : {error}</p>}
+
+      <SearchHistory history={searchHistory} onCityClick={handleHistoryClick} />
+
+
     </div>
   );
 }
