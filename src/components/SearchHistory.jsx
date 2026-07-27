@@ -1,16 +1,29 @@
-function SearchHistory({ history, onCityClick   }) {
+function SearchHistory({ history, onCityClick }) {
   return (
-    <div>  
-        <h2>Historique des recherches :</h2>
+    <section className="history-card">
+      <div className="section-heading">
+        <p className="section-kicker">Recherches récentes</p>
+        <h2>Historique</h2>
+      </div>
 
-      <ul>
-        {history.map((searchedCity) => (
-          <li key={searchedCity} onClick={() => onCityClick(searchedCity)}>
-            {searchedCity}
-          </li>
-        ))}
-      </ul>
-    </div>
+      {history.length === 0 ? (
+        <p className="history-empty">Les villes recherchées apparaîtront ici.</p>
+      ) : (
+        <ul className="history-list">
+          {history.map((searchedCity) => (
+            <li key={searchedCity}>
+              <button
+                type="button"
+                className="history-chip"
+                onClick={() => onCityClick(searchedCity)}
+              >
+                {searchedCity}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }
 
